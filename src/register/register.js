@@ -39,6 +39,7 @@ registerForm.addEventListener('submit', async function(event) {
                     throw new Error('Failed to register user');
                 }
                 const data = await response.json();
+                localStorage.setItem('user_token', data.token);
                 alert(data.success);
                 window.location.href = `${address}:${clientPort}/src/home.html`;
             } catch (err) {

@@ -14,26 +14,26 @@ fetch(`${address}:${serverPort}/api/csrf-token`) // Thay đổi URL thành URL t
  });
 
 // Fetch lấy token để login
-async function getToken() {
-    try {
-        const response = await fetch(`${address}:${serverPort}/api/tokens`);
-        if (!response.ok) {
-            throw new Error('Failed to fetch token');
-        }
-        const data = await response.json();
-        return data.users_token;
-    } catch (error) {
-        console.error(error);
-        return [];
-    }
-}
+// async function getToken() {
+//     try {
+//         const response = await fetch(`${address}:${serverPort}/api/tokens`);
+//         if (!response.ok) {
+//             throw new Error('Failed to fetch token');
+//         }
+//         const data = await response.json();
+//         return data.users_token;
+//     } catch (error) {
+//         console.error(error);
+//         return [];
+//     }
+// }
 
 loginForm.addEventListener('submit', async function(event) {
     event.preventDefault(); 
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     const tokens = await getToken();
-    const token = tokens[0];
+    //const token = tokens[0];
 
     // Lưu các email đã login lên server
     const formData = {
@@ -41,27 +41,29 @@ loginForm.addEventListener('submit', async function(event) {
         password: password,
     };
         if (email.trim() !== '' && password.trim() !== '') {
-            try {
-                const response = await fetch(`${address}:${serverPort}/api/login`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': window.csrfToken,
-                        'Authorization': `Bearer ${token}`,
-                    },
-                    body: JSON.stringify(formData)
-                })
-                if (!response.ok) {
-                    throw new Error('Failed to register user');
-                }
-                const data = await response.json();
-                alert(data.success);
-                window.location.href = `${address}:${clientPort}/src/home.html`;
-            } catch (err) {
-                //console.error('Lỗi từ máy chủ:', err);
-                alert('Đăng nhập thất bại.');
-                // Reset form ở đây nếu cần
-                loginForm.reset();
+            for (const token of tokens) {
+                try {
+                    const response = await fetch(`${address}:${serverPort}/api/login`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': window.csrfToken,
+                            'Authorization': `Bearer ${token}`,
+                        },
+                        body: JSON.stringify(formData)
+                    })
+                    if (!response.ok) {
+                        throw new Error('Failed to register user');
+                    }
+                    const data = await response.json();
+                    alert(data.success);
+                    window.location.href = `${address}:${clientPort}/src/home.html`;
+                } catch (err) {
+                    //console.error('Lỗi từ máy chủ:', err);
+                    alert('Đăng nhập thất bại.');
+                    // Reset form ở đây nếu cần
+                    loginForm.reset();
+                }   
             }
         }
 
