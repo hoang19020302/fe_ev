@@ -40,6 +40,8 @@ registerForm.addEventListener('submit', async function(event) {
                 }
                 const data = await response.json();
                 localStorage.setItem('user_token', data.token);
+                localStorage.setItem('user_name', data.name);
+                localStorage.setItem('user_id', data.id);
                 alert(data.success);
                 window.location.href = `${address}:${clientPort}/src/home.html`;
             } catch (err) {

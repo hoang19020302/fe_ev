@@ -32,8 +32,8 @@ loginForm.addEventListener('submit', async function(event) {
     event.preventDefault(); 
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
-    const tokens = await getToken();
-    //const token = tokens[0];
+    //const tokens = await getToken();
+    const token = localStorage.getItem('user_token');
 
     // Lưu các email đã login lên server
     const formData = {
@@ -41,7 +41,6 @@ loginForm.addEventListener('submit', async function(event) {
         password: password,
     };
         if (email.trim() !== '' && password.trim() !== '') {
-            for (const token of tokens) {
                 try {
                     const response = await fetch(`${address}:${serverPort}/api/login`, {
                         method: 'POST',
@@ -53,9 +52,12 @@ loginForm.addEventListener('submit', async function(event) {
                         body: JSON.stringify(formData)
                     })
                     if (!response.ok) {
-                        throw new Error('Failed to register user');
+                        throw new Error('Failed to login user');
                     }
                     const data = await response.json();
+                    localStorage.setItem('user_token', data.token);
+                    localStorage.setItem('user_name', data.name);
+                    localStorage.setItem('user_id', data.id);
                     alert(data.success);
                     window.location.href = `${address}:${clientPort}/src/home.html`;
                 } catch (err) {
@@ -65,8 +67,6 @@ loginForm.addEventListener('submit', async function(event) {
                     loginForm.reset();
                 }   
             }
-        }
-
     
 });
 
