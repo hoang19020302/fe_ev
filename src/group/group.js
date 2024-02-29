@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const emailCountContainer = document.getElementById('emailCountContainer');
     const emailCountDisplay = document.getElementById('emailCountDisplay');
     const selectedRadio = document.querySelector('input[name="classify"]:checked');
-    const textarea = document.getElementById('emails');
 
     // Fetch lấy toke CSRF vào form
     fetch('http://localhost:8000/api/csrf-token') // Thay đổi URL thành URL thực tế của máy chủ Laravel
@@ -35,16 +34,23 @@ document.addEventListener('DOMContentLoaded', function() {
     emailForm.addEventListener('submit', async function(event) {
         event.preventDefault(); // Ngăn chặn hành vi mặc định của form
 
-        const emails = emailsInput.value.split(';');
-        let validEmails = 0;
+        const emails = emailsInput.value.split(';').map(email => email.trim());// Lấy danh sách email và loại bỏ khoảng trắng
+        const uniqueEmails = new Set(emails); // Lưu trữ các email duy nhất
+        const validEmails = [];
+        const invalidEmails = [];
+        let countEmails = 0;
         // Lấy danh sách email từ API
         const apiEmails = await getEmailListFromAPI();
 
-        const invalidEmails = emails.filter(email => !apiEmails.includes(email));
-
-        emails.forEach(email => {
-            if (/^\S+@\S+\.\S+$/.test(email.trim())) {
-                validEmails++;
+        // Kiem tra một email hợp lệ
+        uniqueEmails.forEach(email => {
+            if (/^\S+@\S+\.\S+$/.test(email)) {
+                if (apiEmails.includes(email)) {
+                    validEmails.push(email);
+                } else {
+                    invalidEmails.push(email);
+                }
+                countEmails++;
             } else {
                 emailsInput.style.borderColor = 'red'; // Đổi màu viền của textarea thành đỏ
                 return; // Ngăn chặn form được gửi đi khi có ít nhất một email không hợp lệ
@@ -52,17 +58,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // Hiển thị số email hợp lệ/tổng khi submit form
-        emailCountDisplay.textContent = `${validEmails}/${emails.length}`;
+        emailCountDisplay.textContent = `${countEmails}/${uniqueEmails.size}`;//`${validEmails.length}/${uniqueEmails.size}`;
         emailCountContainer.style.display = 'flex'; // Hiển thị container chứa số email
         const classify = selectedRadio.value;
-        const emailString = textarea.value;
+        const emailString = validEmails.join(';');
         const formData = {
             classify: classify,
             emails: emailString,
         };
-        // Nếu tất cả các email đều hợp lệ, tiếp tục với hành động mặc định của form
-        if (validEmails === emails.length && invalidEmails.length === 0) {
-        
+        const token = localStorage.getItem('user_token');
+        // Nếu tất cả các email đều hợp lệ, submit form
+        if (invalidEmails.length === 0) {
             try {
                 //POST dữ liệu lên api
                 const response = await fetch('http://127.0.0.1:8000/api/send-email', {
@@ -70,6 +76,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': window.csrfToken,
+                        'Authorization': `Bearer ${token}`,
                     },
                     body: JSON.stringify(formData)
                 });
