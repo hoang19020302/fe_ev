@@ -13,20 +13,7 @@ fetch(`${address}:${serverPort}/api/csrf-token`) // Thay đổi URL thành URL t
         document.getElementById('csrfToken').value = window.csrfToken;
  });
 
-// Fetch lấy token để login
-// async function getToken() {
-//     try {
-//         const response = await fetch(`${address}:${serverPort}/api/tokens`);
-//         if (!response.ok) {
-//             throw new Error('Failed to fetch token');
-//         }
-//         const data = await response.json();
-//         return data.users_token;
-//     } catch (error) {
-//         console.error(error);
-//         return [];
-//     }
-// }
+
 
 loginForm.addEventListener('submit', async function(event) {
     event.preventDefault(); 

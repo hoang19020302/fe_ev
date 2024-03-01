@@ -1,6 +1,10 @@
 const logout = document.getElementById('logout');
 const token = localStorage.getItem('user_token');
 const uname = localStorage.getItem('user_name');
+const address = 'http://127.0.0.1';
+const clientPort = '5500';
+const serverPort = '8000';
+let isLoggedOut = false;
 
 //Gán tên người dùng login or register
 if (token && uname) {
@@ -10,7 +14,7 @@ if (token && uname) {
 // Đăng xuất
 logout.addEventListener('click', (e) => {
     e.preventDefault();
-    fetch('http://127.0.0.1:8000/api/logout', {
+    fetch(`${address}:${serverPort}/api/logout`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -22,6 +26,7 @@ logout.addEventListener('click', (e) => {
                 localStorage.removeItem('user_token');
                 localStorage.removeItem('user_name');
                 localStorage.removeItem('user_id');
+                isLoggedOut = true;
                 return response.json();
             } else {
                 throw new Error('Failed to logout user');
@@ -29,11 +34,12 @@ logout.addEventListener('click', (e) => {
         })
         .then(data => {
             alert(data.success);
-            window.location.href = 'http://127.0.0.1:5500/page.html';
+            if (isLoggedOut) {
+                window.location.href = `${address}:${clientPort}/page.html`;    
+            }
         })
         .catch(err => {
             console.error(err);
-            alert('Failed to logout user');
-            
+            alert('Đăng xuất thất bại');
         })
 })

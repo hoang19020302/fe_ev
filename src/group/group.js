@@ -5,6 +5,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const emailCountDisplay = document.getElementById('emailCountDisplay');
     const classifyRadios = document.querySelectorAll('input[name="classify"]');
     let classify = '';
+    const token = localStorage.getItem('user_token');
+    const address = 'http://127.0.0.1';
+    const clientPort = '5500';
+    const serverPort = '8000';
 
     classifyRadios.forEach(radio => {
         radio.addEventListener('change', function() {
@@ -13,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Fetch lấy toke CSRF vào form
-    fetch('http://localhost:8000/api/csrf-token') // Thay đổi URL thành URL thực tế của máy chủ Laravel
+    fetch(`${address}:${serverPort}/api/csrf-token`) // Thay đổi URL thành URL thực tế của máy chủ Laravel
     .then(response => response.json())
     .then(data => {
         const csrfToken = data.csrf_token;
@@ -26,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Hàm để lấy danh sách email từ API
     async function getEmailListFromAPI() {
         try {
-            const response = await fetch('http://127.0.0.1:8000/api/list-email');
+            const response = await fetch(`${address}:${serverPort}/api/list-email?token=${token}`);
             if (!response.ok) {
                 throw new Error('Failed to fetch email list from API');
             }
@@ -41,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
     emailForm.addEventListener('submit', async function(event) {
         event.preventDefault(); // Ngăn chặn hành vi mặc định của form
 
-        const emails = emailsInput.value.split(';');// Lấy danh sách email 
+        const emails = emailsInput.value.split(';').map(email => email.trim());// Lấy danh sách email 
         const uniqueEmails = new Set(emails); // Lưu trữ các email duy nhất
         const validEmails = [];
         const invalidEmails = [];
@@ -75,7 +79,6 @@ document.addEventListener('DOMContentLoaded', function() {
             classify: classifyValue,
             emails: emailString,
         };
-        const token = localStorage.getItem('user_token');
         // Nếu tất cả các email đều hợp lệ, submit form
         if (errorEmails.length === 0 && invalidEmails.length === 0 && !hasInvalidEmail) {
             try {
