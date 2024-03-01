@@ -41,18 +41,18 @@ document.addEventListener('DOMContentLoaded', function() {
     emailForm.addEventListener('submit', async function(event) {
         event.preventDefault(); // Ngăn chặn hành vi mặc định của form
 
-        const emails = emailsInput.value.split(';').map(email => email.trim());// Lấy danh sách email và loại bỏ khoảng trắng
+        const emails = emailsInput.value.split(';');// Lấy danh sách email 
         const uniqueEmails = new Set(emails); // Lưu trữ các email duy nhất
         const validEmails = [];
         const invalidEmails = [];
-        let countEmails = 0;
+        const errorEmails = [];
+        let hasInvalidEmail = false; // Biến để kiểm tra xem có email không hợp lệ không
         // Lấy danh sách email từ API
         const apiEmails = await getEmailListFromAPI();
 
         // Kiem tra một email hợp lệ
         uniqueEmails.forEach(email => {
-            if (/^\S+@\S+\.\S+$/.test(email)) {
-                //countEmails++;
+            if (/^\S+@\S+\.\S+$/.test(email.trim())) {
                 if (apiEmails.includes(email)) {
                     validEmails.push(email);
                 } else {
@@ -60,7 +60,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             } else {
                 emailsInput.style.borderColor = 'red'; // Đổi màu viền của textarea thành đỏ
-                return; // Ngăn chặn form được gửi đi khi có ít nhất một email không hợp lệ
+                hasInvalidEmail = true;
+                errorEmails.push(email);
             }
         });
 
@@ -76,7 +77,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         const token = localStorage.getItem('user_token');
         // Nếu tất cả các email đều hợp lệ, submit form
-        if (invalidEmails.length === 0) {
+        if (errorEmails.length === 0 && invalidEmails.length === 0 && !hasInvalidEmail) {
             try {
                 //POST dữ liệu lên api
                 const response = await fetch('http://127.0.0.1:8000/api/send-email', {
@@ -102,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 emailForm.reset(); // Reset form khi gặp lỗi
             }
         } else {
-            alert(`Có email chưa đăng ký: ${invalidEmails.join(', ')}`);
+            alert(`Email chưa đăng ký: ${invalidEmails.join(', ')}\nEmail sai định dạng: ${errorEmails.join(', ')}`);
         }
     });
 });
