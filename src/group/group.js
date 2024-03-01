@@ -3,7 +3,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const emailsInput = document.getElementById('emails');
     const emailCountContainer = document.getElementById('emailCountContainer');
     const emailCountDisplay = document.getElementById('emailCountDisplay');
-    const selectedRadio = document.querySelector('input[name="classify"]:checked');
+    const classifyRadios = document.querySelectorAll('input[name="classify"]');
+    let classify = '';
+
+    classifyRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            classify = this.value; // Gán giá trị của radio button được chọn vào biến classify
+        });
+    });
 
     // Fetch lấy toke CSRF vào form
     fetch('http://localhost:8000/api/csrf-token') // Thay đổi URL thành URL thực tế của máy chủ Laravel
@@ -45,12 +52,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // Kiem tra một email hợp lệ
         uniqueEmails.forEach(email => {
             if (/^\S+@\S+\.\S+$/.test(email)) {
+                //countEmails++;
                 if (apiEmails.includes(email)) {
                     validEmails.push(email);
                 } else {
                     invalidEmails.push(email);
                 }
-                countEmails++;
             } else {
                 emailsInput.style.borderColor = 'red'; // Đổi màu viền của textarea thành đỏ
                 return; // Ngăn chặn form được gửi đi khi có ít nhất một email không hợp lệ
@@ -58,12 +65,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // Hiển thị số email hợp lệ/tổng khi submit form
-        emailCountDisplay.textContent = `${countEmails}/${uniqueEmails.size}`;//`${validEmails.length}/${uniqueEmails.size}`;
+        emailCountDisplay.textContent = `${validEmails.length}/${uniqueEmails.size}`;
         emailCountContainer.style.display = 'flex'; // Hiển thị container chứa số email
-        const classify = selectedRadio.value;
         const emailString = validEmails.join(';');
+        const selectedRadio = document.querySelector('input[name="classify"]:checked');
+        const classifyValue = selectedRadio.value;
         const formData = {
-            classify: classify,
+            classify: classifyValue,
             emails: emailString,
         };
         const token = localStorage.getItem('user_token');
@@ -86,9 +94,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 const data = await response.json();
                 alert(data.success);
                 //console.log(data);
+                emailCountDisplay.textContent = '';
                 emailForm.reset(); // Reset form khi gửi email thành công
             } catch (err) {
                 alert('Đã có lỗi trong quá trình gửi email');
+                emailCountDisplay.textContent = '';
                 emailForm.reset(); // Reset form khi gặp lỗi
             }
         } else {
